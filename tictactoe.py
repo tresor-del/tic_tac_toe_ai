@@ -9,7 +9,6 @@ X = "X"
 O = "O"
 EMPTY = None
 
-
 def initial_state():
     """
     Returns starting state of the board.
@@ -17,7 +16,6 @@ def initial_state():
     return [[EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY],
             [EMPTY, EMPTY, EMPTY]]
-
 
 def player(board):
     """
@@ -27,7 +25,6 @@ def player(board):
     o_count = sum(cell == O for row in board for cell in row)
 
     return X if x_count == o_count else O
-
 
 def actions(board):
     """
@@ -39,7 +36,6 @@ def actions(board):
             if board[i][j] == EMPTY:
                 result.add((i, j))
     return result
-
 
 def result(board, action):
     """
@@ -54,7 +50,6 @@ def result(board, action):
     new_board[i][j] = player(board)
     
     return new_board
-
 
 def winner(board):
     """
@@ -88,7 +83,6 @@ def winner(board):
 
     return None
 
-
 def terminal(board):
     """
     Retourne True si le jeu est tèrminé, False sinon
@@ -102,7 +96,6 @@ def terminal(board):
     
     return True
 
-
 def utility(board):
     """
     Retourne +1 si X à gagné, -1 si O à gagné et 0 si partie nulle
@@ -114,16 +107,10 @@ def utility(board):
         return -1
     return 0
 
-
-# def minimax(board):
-#     """
-#     Returns the optimal action for the current player on the board.
-#     """
-#     raise NotImplementedError
-
 def minimax(board):
     """
-    Retourne la meilleur action que le joueur puisse faire
+    Retourne la meilleur action que le joueur puisse faire 
+    en utilisant minimax
     """
     
     # si un joueur gagne ou c'est nul, il n'y a plus d'action
@@ -169,7 +156,6 @@ def minimax(board):
 
     return best_action
 
-
 def max_value(board):
     """
     Retourne la valeur max d'une action
@@ -189,7 +175,6 @@ def max_value(board):
         v = max(v, min_value(result(board, action)))
     return v
 
-
 def min_value(board):
     """
     Retourne la valeur min d'une action
@@ -207,3 +192,58 @@ def min_value(board):
         v = min(v, max_value(result(board, action)))
     return v
 
+def alphabeta_pruning(board):
+    """
+    Alpha Beta Pruning
+    """
+    if terminal(board):
+        return None
+    
+    current_player = player(board)
+    best_action = None
+
+    if current_player == X:
+        best_value = float('-inf')
+        for action in actions(board):
+            value = min_value_ab(result(board, action), alpha=float("-inf"), beta=float("inf"))
+            if value > best_value:
+                best_value = value
+                best_action = action
+                
+    else:
+        best_value = float('inf')
+        for action in actions(board):
+            value = max_value_ab(result(board, action), alpha=float("inf"), beta=float("-inf"))
+            if value < best_value:
+                best_value = value
+                best_action = action
+
+    return best_action
+
+def max_value_ab(board, alpha, beta):
+    """
+    Retourne la valeur max d'une action
+    """
+    v = float('-inf')
+    if terminal(board):
+        return utility(board)
+    for action in actions(board):
+        v = max(v, min_value_ab(result(board, action), alpha, beta))
+        alpha = max(alpha, v)
+        if alpha >= beta:
+            break
+    return v
+
+def min_value_ab(board, alpha, beta):
+    """
+    Retourne la valeur min d'une action
+    """
+    v = float('inf')
+    if terminal(board):
+        return utility(board)
+    for action in actions(board):
+        v = min(v, max_value_ab(result(board, action), alpha, beta))
+        beta = min(beta, v)
+        if beta <= alpha:
+            break
+    return v
